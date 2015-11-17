@@ -8,7 +8,7 @@
 
 export PATH=$PATH:/sbin
 
-PROGRAM_PATH="/castis/bin/CiGSDMServer"
+PROGRAM_PATH="/castis/bin/CiGSDMServers"
 PROCESS="CiGSDMServer"
 MONITOR="CiGSDMServerMonitor"
 OUTPUT=$PROGRAM_PATH/.$PROCESS.output
