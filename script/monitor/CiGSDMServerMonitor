@@ -1,0 +1,34 @@
+#!/bin/sh
+
+PROGRAM_PATH="/castis/bin/CiGSDMServer"
+PROCESS="CiGSDMServer"
+PORT=3306
+PS_COMMAND='ps ax'
+LOG_PATH="/castis/log/gsdm_log/CiGSDMServer.log"
+RETRY_CNT=5
+
+function restart_gsdm {
+	#service ciads status
+	PROC_NUM=`$PS_COMMAND 2>/dev/null | grep -w $PROGRAM_PATH/$PROCESS | grep -v grep | wc -l`
+	PROC_PORT=`netstat -anp | grep ":$PORT" -c`
+	
+	if [ $PROC_NUM -eq 0 ] || [ $PROC_PORT -eq 0 ] 
+	then
+		if [ ${RETRY_CNT} -gt 0 ];then
+			RETRY_CNT=$((RETRY_CNT-1))
+			echo "`date +%Y"-"%m"-"%d" "%T`, `expr 5 - ${RETRY_CNT}` try to start CiGSDMServer" >> ${LOG_PATH}
+			service cigsdm start
+			sleep 1
+			restart_gsdm ${RETRY_CNT}
+		else
+			echo "`date +%Y"-"%m"-"%d" "%T`, Fail to start CiGSDMServer....." >> ${LOG_PATH}
+			kill -9 `ps ax | grep CiGSDMServerMonitor | grep -v grep | awk '{print $1}'`
+		fi
+	fi
+}
+
+while true
+do
+	restart_gsdm ${RETRY_CNT}
+	sleep 3
+done

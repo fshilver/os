@@ -1,0 +1,119 @@
+#!/bin/bash
+
+# chkconfig: 2345 90 90
+# description: CiGSDMServer
+
+
+. /etc/init.d/functions
+
+export PATH=$PATH:/sbin
+
+PROGRAM_PATH="/castis/bin/CiGSDMServer"
+PROCESS="CiGSDMServer"
+MONITOR="CiGSDMServerMonitor"
+OUTPUT=$PROGRAM_PATH/.$PROCESS.output
+PS_COMMAND="ps ax"
+
+start()
+{
+	# Return Code
+	# 0	success to start
+	# 1	fail to start
+
+        PROC_NUM1=`$PS_COMMAND 2>/dev/null | grep -w ${PROGRAM_PATH}/${PROCESS} | grep -v grep | wc -l`
+        MONITOR_NUM1=`$PS_COMMAND 2>/dev/null | grep -w ${PROGRAM_PATH}/${MONITOR} | grep -v grep | wc -l`
+        if [ $PROC_NUM1 -gt 0 ]
+        then
+		echo -n "$PROCESS Already Runnig"
+		echo_passed
+		echo
+                return 0;
+
+        else
+		echo -n "Starting $PROCESS ..."
+                cd $PROGRAM_PATH
+                java -jar ${PROGRAM_PATH}/${PROCESS} >$OUTPUT 2>&1 &
+		sleep 1
+		status
+
+		if [ $? -eq 0 -a ${MONITOR_NUM1} -eq 0 ]
+		then
+			echo_success
+			echo
+			${PROGRAM_PATH}/${MONITOR} > /dev/null 2>/dev/null &
+			return 0
+		else
+			echo_failure
+			echo
+			cat $OUTPUT
+			return 1
+		fi
+        fi
+}
+
+status()
+{
+	# LSB Status Return Code
+	# 0	program is running or service is OK
+	# 1	program is dead and /var/run pid file exists
+	# 2	program is dead and /var/lock lock file exists
+	# 3	program is not running
+	# 4	program or service status is unknown
+	# 5-99	reserved for future LSB use
+	# 100-149	reserved for distribution use
+	# 150-199	reserved for application use
+	# 200-254	reserved
+
+        PROC_NUM1=`$PS_COMMAND | grep -w ${PROGRAM_PATH}/${PROCESS} | grep -v grep | wc -l`
+        if [ $PROC_NUM1 -gt 0 ]
+        then
+                return 0;
+        else
+                return 3;
+        fi
+}
+
+
+stop()
+{
+	# Return Code
+	# 0	success to kill
+	# 1	fail to kill
+
+	echo -n "Stopping $PROCESS ..."
+        kill -9 `ps ax | grep $PROCESS | grep -v grep | awk '{print $1}'` 2> /dev/null
+	killall -9 $MONITOR 2> /dev/null
+	sleep 2
+	status
+
+	if [ $? -eq 0 ]
+	then
+		echo_failure
+		echo
+		return 1
+	else
+		echo_success
+		echo
+		return 0
+	fi
+}
+
+
+case "$1" in
+        start)
+                start
+                ;;
+        stop)
+                stop
+                ;;
+        restart)
+                stop
+                start
+                ;;
+        status)
+                status
+                ;;
+        *)
+                echo "Usage: $0 {start|stop|restart}"
+esac
+exit
