@@ -32,7 +32,7 @@ start()
         else
 		echo -n "Starting $PROCESS ..."
                 cd $PROGRAM_PATH
-                java -jar ${PROGRAM_PATH}/${PROCESS} >$OUTPUT 2>&1 &
+                java -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -jar ${PROGRAM_PATH}/${PROCESS} >$OUTPUT 2>&1 &
 		sleep 1
 		status
 
