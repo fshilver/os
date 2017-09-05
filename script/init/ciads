@@ -1,16 +1,16 @@
 #!/bin/bash
 
 # chkconfig: 2345 90 90
-# description: CiVODServer
+# description: CiADS
 
 
 . /etc/init.d/functions
 
 export PATH=$PATH:/sbin
 
-PROGRAM_PATH="/castis/bin/CiVODServer"
-PROCESS="CiVODServer"
-MONITOR="CiVODServerMonitor"
+PROGRAM_PATH="/castis/bin/CiADS"
+PROCESS="CiADS"
+MONITOR="CiADSMonitor"
 OUTPUT=$PROGRAM_PATH/.$PROCESS.output
 PS_COMMAND="ps ax"
 
@@ -32,7 +32,6 @@ start()
     else
 
         echo -n "Starting $PROCESS ..."
-        ulimit -s 1024
         cd $PROGRAM_PATH
         ${PROGRAM_PATH}/${PROCESS} >$OUTPUT 2>&1 &
         sleep 1
@@ -40,11 +39,14 @@ start()
 
         if [ $? -eq 0 ]
         then
+
             echo_success
             echo
             ${PROGRAM_PATH}/${MONITOR} > /dev/null 2>/dev/null &
             return 0
+
         else
+
             echo_failure
             echo
             cat $OUTPUT
